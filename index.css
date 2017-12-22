@@ -1,0 +1,33 @@
+html, body {
+  position: relative;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: sans-serif;
+}
+
+#three-canvas {
+  position: fixed;
+  top: 0; bottom: 0; left: 0; right: 0;
+}
+
+/* loading screen */
+
+#loading-screen {
+  position: fixed;
+  top: 0; bottom: 0; left: 0; right: 0;
+  background: white;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#loading-msg {
+  text-align: center;
+  letter-spacing: 3px;
+  font-size: 18px;
+  font-weight: 300;
+}
