@@ -8,7 +8,7 @@ body {
   font-family: sans-serif;
 }
 
-.diagram { width: 150px; height: 150px; float: left; margin: 1em; }
+.diagram { width: 400px; height: 200px; float: left; margin: 1em; }
 
 
 #three-canvas {

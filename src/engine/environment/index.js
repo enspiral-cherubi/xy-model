@@ -16,15 +16,20 @@ class Environment {
   constructor () {
     this.scene = new THREE.Scene()
 
-    this.camera = new THREE.PerspectiveCamera(75, horizSize / vertSize, 0.01, 1000)
-    this.camera.position.z = 15
 
-    this.controls = new OrbitControls(this.camera)
 
     this.renderer = new THREE.WebGLRenderer({alpha: true, canvas: $('#three-canvas')[0]})
+    const canvas = this.renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight
     // this.renderer.setSize(window.innerWidth, window.innerHeight)
-    this.renderer.setSize(horizSize*5,vertSize*5)
+    this.renderer.setSize(width,height)
     this.renderer.setClearColor(0xffffff, 1)
+
+    this.camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000)
+    this.camera.position.z = 16
+
+    this.controls = new OrbitControls(this.camera)
 
     const windowResize = new WindowResize(this.renderer, this.camera)
     console.log({ windowResize })
@@ -115,6 +120,7 @@ class Environment {
   }
 
   resizeCanvasToDisplaySize(force) {
+    //thx to gman on stackexchange for this hack
     const canvas = this.renderer.domElement;
     // look up the size the canvas is being displayed
     const width = canvas.clientWidth;
