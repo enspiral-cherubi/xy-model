@@ -7,9 +7,10 @@ var disp
 var e0, e1
 var w,a,s,d,x
 var p
-const horizSize = 300
-const vertSize = 150
+const horizSize = 200
+const vertSize = 100
 var temp = 1
+var poking = false
 
 class Environment {
 
@@ -22,8 +23,8 @@ class Environment {
     const canvas = this.renderer.domElement;
     const width = canvas.clientWidth;
     const height = canvas.clientHeight
-    // this.renderer.setSize(window.innerWidth, window.innerHeight)
-    this.renderer.setSize(width,height)
+    this.renderer.setSize(window.innerWidth, window.innerHeight)
+    // this.renderer.setSize(width,height)
     this.renderer.setClearColor(0x000000, 1)
 
     this.camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000)
@@ -67,11 +68,11 @@ class Environment {
         if(i == 0 || j == 0 || i == xLen-1 || j == yLen-1){
             //useful to set boundary values separately,
             //especially when using Dirichlet boundary conditions
-            // this.pointsArray[i][j].s = Math.random()
-            this.pointsArray[i][j].s = 0
+            this.pointsArray[i][j].s = Math.random()
+            // this.pointsArray[i][j].s = i/horizSize
         } else {
           // this.pointsArray[i][j].s = Math.random()
-          this.pointsArray[i][j].s = 0
+          this.pointsArray[i][j].s = i/horizSize
         }
         geometry.vertices.push(this.pointsArray[i][j])
         geometry.colors.push(new THREE.Color("hsl(" + 360*this.pointsArray[i][j].s
@@ -141,6 +142,40 @@ class Environment {
     } else if (e.key == "c") {
       temp-=0.05
       this.text2.innerHTML = Math.floor(20*temp)
+    }
+  }
+
+  keydown(e) {
+    if(e.key == " "){
+      poking = true
+    }
+  }
+
+  keyup(e) {
+    if(e.key ==" "){
+      poking = false
+    }
+  }
+
+  mousemove(e) {
+    if(poking){
+      var vector = new THREE.Vector3(2*e.clientX/window.innerWidth - 1,
+                                    -2*e.clientY/window.innerHeight + 1,
+                                    0.5
+                                  )
+      vector.unproject( this.camera )
+      var direction = vector.sub( this.camera.position ).normalize()
+      var distance = - this.camera.position.z / direction.z
+      var position = this.camera.position.clone().add( direction.multiplyScalar( distance ) )
+      if(-horizSize/4 < position.x && position.x < horizSize/4 && -vertSize/4 < position.y && position.y < vertSize/4){
+        i = Math.floor(position.x*2) + horizSize/2
+        j = Math.floor(position.y*2) + vertSize/2
+        for(var k = -8; k<9;k++){
+          for(var l = -8; l<9;l++){
+            this.pointsArray[i+k][j+l].s = Math.random()
+          }
+        }
+      }
     }
   }
 
