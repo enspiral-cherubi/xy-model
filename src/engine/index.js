@@ -12,6 +12,7 @@ class Engine {
 
   bindEventListeners () {
     $(window).load(this.view.closeLoadingScreen)
+    $(window).on("keypress",(e) => this.environment.keypress(e))
   }
 
   start () {

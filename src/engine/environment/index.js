@@ -56,9 +56,11 @@ class Environment {
         if(i == 0 || j == 0 || i == xLen-1 || j == yLen-1){
             //useful to set boundary values separately,
             //especially when using Dirichlet boundary conditions
-            this.pointsArray[i][j].s = Math.random()
+            // this.pointsArray[i][j].s = Math.random()
+            this.pointsArray[i][j].s = 0
         } else {
-          this.pointsArray[i][j].s = Math.random()
+          // this.pointsArray[i][j].s = Math.random()
+          this.pointsArray[i][j].s = 0
         }
         geometry.vertices.push(this.pointsArray[i][j])
         geometry.colors.push(new THREE.Color("hsl(" + 360*this.pointsArray[i][j].s
@@ -119,6 +121,14 @@ class Environment {
 
   energy(w,a,s,d,x) {
     return Math.cos(2*Math.PI*(w-s)) + Math.cos(2*Math.PI*(a-s)) + Math.cos(2*Math.PI*(d-s)) + Math.cos(2*Math.PI*(x-s))
+  }
+
+  keypress(e) {
+    if(e.key == "h"){
+      temp+=0.05
+    } else if (e.key == "c") {
+      temp-=0.05
+    }
   }
 
   resizeCanvasToDisplaySize(force) {
