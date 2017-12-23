@@ -9,7 +9,7 @@ var w,a,s,d,x
 var p
 const horizSize = 200
 const vertSize = 100
-var temp = 1
+var temp = 0.3
 var poking = false
 
 class Environment {
@@ -51,7 +51,8 @@ class Environment {
   }
 
   render () {
-    this.updateXYPeriodic(horizSize,vertSize,temp)
+    // this.updateXYPeriodic(horizSize,vertSize,temp)
+    this.updateXYDirichlet(horizSize,vertSize,temp)
     this.resizeCanvasToDisplaySize(true)
     this.renderer.render(this.scene, this.camera)
   }
@@ -68,11 +69,12 @@ class Environment {
         if(i == 0 || j == 0 || i == xLen-1 || j == yLen-1){
             //useful to set boundary values separately,
             //especially when using Dirichlet boundary conditions
-            this.pointsArray[i][j].s = Math.random()
+            // this.pointsArray[i][j].s = Math.random()
             // this.pointsArray[i][j].s = i/horizSize
+            this.pointsArray[i][j].s = i/horizSize
         } else {
-          // this.pointsArray[i][j].s = Math.random()
-          this.pointsArray[i][j].s = i/horizSize
+          this.pointsArray[i][j].s = Math.random()
+          // this.pointsArray[i][j].s = i/horizSize
         }
         geometry.vertices.push(this.pointsArray[i][j])
         geometry.colors.push(new THREE.Color("hsl(" + 360*this.pointsArray[i][j].s
