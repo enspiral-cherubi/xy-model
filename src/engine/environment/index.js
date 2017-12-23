@@ -16,23 +16,31 @@ class Environment {
   constructor () {
     this.scene = new THREE.Scene()
 
-    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000)
-    this.camera.position.z = 40
 
-    // this.controls = new OrbitControls(this.camera)
 
     this.renderer = new THREE.WebGLRenderer({alpha: true, canvas: $('#three-canvas')[0]})
-    this.renderer.setSize(window.innerWidth, window.innerHeight)
+    const canvas = this.renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight
+    // this.renderer.setSize(window.innerWidth, window.innerHeight)
+    this.renderer.setSize(width,height)
     this.renderer.setClearColor(0xffffff, 1)
+
+    this.camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000)
+    this.camera.position.z = 16
+
+    this.controls = new OrbitControls(this.camera)
 
     const windowResize = new WindowResize(this.renderer, this.camera)
     console.log({ windowResize })
 
     this.createXY(horizSize,vertSize)
+    this.resizeCanvasToDisplaySize(true)
   }
 
   render () {
     this.updateXYPeriodic(horizSize,vertSize,temp)
+    this.resizeCanvasToDisplaySize(true)
     this.renderer.render(this.scene, this.camera)
   }
 
@@ -109,6 +117,24 @@ class Environment {
 
   energy(w,a,s,d,x) {
     return Math.cos(2*Math.PI*(w-s)) + Math.cos(2*Math.PI*(a-s)) + Math.cos(2*Math.PI*(d-s)) + Math.cos(2*Math.PI*(x-s))
+  }
+
+  resizeCanvasToDisplaySize(force) {
+    //thx to gman on stackexchange for this hack
+    const canvas = this.renderer.domElement;
+    // look up the size the canvas is being displayed
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+
+    // adjust displayBuffer size to match
+    if (force || canvas.width !== width || canvas.height !== height) {
+      // you must pass false here or three.js sadly fights the browser
+      this.renderer.setSize(width, height, false);
+      this.camera.aspect = width / height;
+      this.camera.updateProjectionMatrix();
+
+      // update any render target sizes here
+    }
   }
 
 }
