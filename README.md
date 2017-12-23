@@ -16,7 +16,9 @@ There are also antivortices, and they are created and annihilated in vortex-anti
 
 In controlling the simulation, press h for hotter temperatures and c for colder temperatures. You can also hold spacebar while moving the mouse to create disturbances.
 
-The way we simulate time evolution in this model is using Glauber dynamics. At each time step, we iterate over all lattice sites i, then choose a random angle S_i^{new} at that site for replacement. We compute the difference in energy \Delta E between the initial configuration and the configuration where the angle S_i^{old} is replaced with the random angle S_i^{new}. This energy difference, along with the temperature, defines the Boltzmann probability
+At low temperatures, the force between vortices is dominated by the energy and goes with distance as 1/r, causing an eventually collapse of all vortex-antivortex pairs. As the temperature increases however, a repulsive entropic force between vortices eventually dominates, leading to a phase transition to a regime where vortices are unbound and the angles are basically uncorrelated at large distances. This transition, the Kosterlitz-Thouless transition, is very special among classical phase transitions because it cannot be understood in a symmetry-breaking framework. It was one of the breakthroughs mentioned in the 2016 Nobel prize announcements.
+
+Some technical comments. The way we simulate time evolution in this model is using Glauber dynamics. At each time step, we iterate over all lattice sites i, then choose a random angle S_i^{new} at that site for replacement. We compute the difference in energy \Delta E between the initial configuration and the configuration where the angle S_i^{old} is replaced with the random angle S_i^{new}. This energy difference, along with the temperature, defines the Boltzmann probability
 
 p = 1/(1+\exp(-\Delta E/T)).
 
