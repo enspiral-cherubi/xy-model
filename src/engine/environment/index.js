@@ -65,7 +65,7 @@ class Environment {
     for(i = 0; i<xLen; i++){
       this.pointsArray[i] = new Array(yLen)
       for(j = 0; j<yLen; j++){
-        this.pointsArray[i][j] = new THREE.Vector3(i/2-xLen/4,j/2-yLen/4,0)
+        this.pointsArray[i][j] = new THREE.Vector3(i*0.5-xLen*0.25,j*0.5-yLen*0.25,0)
         if(i == 0 || j == 0 || i == xLen-1 || j == yLen-1){
             //useful to set boundary values separately,
             //especially when using Dirichlet boundary conditions
