@@ -7,9 +7,9 @@ var disp
 var e0, e1
 var w,a,s,d,x
 var p
-const horizSize = 200
-const vertSize = 100
-var temp = 0.3
+const horizSize = 300
+const vertSize = 150
+var temp = 1
 
 class Environment {
 
@@ -33,6 +33,17 @@ class Environment {
 
     const windowResize = new WindowResize(this.renderer, this.camera)
     console.log({ windowResize })
+
+    this.text2 = document.createElement('div');
+    this.text2.style.position = 'absolute';
+    //this.text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+    this.text2.style.width = 100;
+    this.text2.style.height = 100;
+    this.text2.style.backgroundColor = "white";
+    this.text2.innerHTML = Math.floor(20*temp);
+    this.text2.style.top = height + 'px';
+    this.text2.style.left = 20 + 'px';
+    document.body.appendChild(this.text2);
 
     this.createXY(horizSize,vertSize)
     this.resizeCanvasToDisplaySize(true)
@@ -126,8 +137,10 @@ class Environment {
   keypress(e) {
     if(e.key == "h"){
       temp+=0.05
+      this.text2.innerHTML = Math.floor(20*temp)
     } else if (e.key == "c") {
       temp-=0.05
+      this.text2.innerHTML = Math.floor(20*temp)
     }
   }
 
