@@ -7,8 +7,8 @@ var disp
 var e0, e1
 var w,a,s,d,x
 var p
-const horizSize = 100
-const vertSize = 50
+const horizSize = 200
+const vertSize = 100
 var temp = 0.3
 
 class Environment {
@@ -24,10 +24,10 @@ class Environment {
     const height = canvas.clientHeight
     // this.renderer.setSize(window.innerWidth, window.innerHeight)
     this.renderer.setSize(width,height)
-    this.renderer.setClearColor(0xffffff, 1)
+    this.renderer.setClearColor(0x000000, 1)
 
     this.camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000)
-    this.camera.position.z = 16
+    this.camera.position.z = width/25
 
     this.controls = new OrbitControls(this.camera)
 
@@ -54,7 +54,9 @@ class Environment {
       for(j = 0; j<yLen; j++){
         this.pointsArray[i][j] = new THREE.Vector3(i/2-xLen/4,j/2-yLen/4,0)
         if(i == 0 || j == 0 || i == xLen-1 || j == yLen-1){
-            this.pointsArray[i][j].s = 1/2
+            //useful to set boundary values separately,
+            //especially when using Dirichlet boundary conditions
+            this.pointsArray[i][j].s = Math.random()
         } else {
           this.pointsArray[i][j].s = Math.random()
         }
