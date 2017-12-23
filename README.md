@@ -22,7 +22,7 @@ Some technical comments. The way we simulate time evolution in this model is usi
 
 p = 1/(1+\exp(-\Delta E/T)).
 
-Then the simulator chooses another random variable 0<X<1 and if X<p, we replace S_i^{old} with S_i^{new}. Otherwise, no change of state is made.
+Then the simulator chooses another random variable 0<X<1 and if X<p, we replace S_i^{old} with S_i^{new}. Otherwise, no change of state is made. What makes this algorithm quick is that \Delta E may be computed using only 5 sites, since the terms in H directly couple only nearest neighbors. A model with a Hamiltonian like \sum_i \sum_j cos(S_i-S_j)/|i-j| for instance, would be much harder to simulate.
 
 ### install
 
