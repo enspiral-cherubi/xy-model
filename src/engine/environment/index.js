@@ -173,8 +173,10 @@ class Environment {
       this.text2.innerHTML = Math.floor(20*temp)
     } else if (e.key == "m") {
       feedback += 0.05
+      console.log(feedback)
     } else if (e.key == "l") {
       feedback -= 0.05
+      console.log(feedback)
     }
   }
 
