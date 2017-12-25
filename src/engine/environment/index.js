@@ -47,12 +47,12 @@ class Environment {
     this.text2.style.left = 20 + 'px';
     document.body.appendChild(this.text2);
 
-    this.createXY(horizSize,vertSize)
+    this.createXY()
     this.resizeCanvasToDisplaySize(true)
   }
 
   render () {
-    // this.updateXYPeriodic(horizSize,vertSize,temp)
+    // this.updateXYPeriodic(horizSize,vertSize)
     this.updateXYDirichlet(horizSize,vertSize)
     this.resizeCanvasToDisplaySize(true)
     this.renderer.render(this.scene, this.camera)
@@ -60,14 +60,14 @@ class Environment {
 
   // 'private'
 
-  createXY (xLen,yLen) {
+  createXY () {
     var geometry = new THREE.Geometry()
-    this.pointsArray = new Array(xLen)
-    for(i = 0; i<xLen; i++){
-      this.pointsArray[i] = new Array(yLen)
-      for(j = 0; j<yLen; j++){
-        this.pointsArray[i][j] = new THREE.Vector3(i*0.5-xLen*0.25,j*0.5-yLen*0.25,0)
-        if(i == 0 || j == 0 || i == xLen-1 || j == yLen-1){
+    this.pointsArray = new Array(horizSize)
+    for(i = 0; i<horizSize; i++){
+      this.pointsArray[i] = new Array(vertSize)
+      for(j = 0; j<vertSize; j++){
+        this.pointsArray[i][j] = new THREE.Vector3(i*0.5-horizSize*0.25,j*0.5-vertSize*0.25,0)
+        if(i == 0 || j == 0 || i == horizSize-1 || j == vertSize-1){
             //useful to set boundary values separately,
             //especially when using Dirichlet boundary conditions
             // this.pointsArray[i][j].s = Math.random()
@@ -88,11 +88,11 @@ class Environment {
     this.scene.add(this.points)
   }
 
-  updateXYDirichlet (xLen,yLen) {
+  updateXYDirichlet () {
     //uses Dirichlet boundary conditions and Glauber dynamics
-    var averageMagnetization = this.getAverageMagnetization(xLen,yLen,5)
-    for(i = 1; i<xLen-1; i++){
-      for(j = 1; j<yLen-1; j++){
+    var averageMagnetization = this.getAverageMagnetization(horizSize,vertSize,5)
+    for(i = 1; i<horizSize-1; i++){
+      for(j = 1; j<vertSize-1; j++){
         disp = Math.random()
         w = this.pointsArray[i][j+1].s
         a = this.pointsArray[i-1][j].s
@@ -104,7 +104,7 @@ class Environment {
         p = 1/(1+Math.exp(-(e1-e0)/temp))
         if(Math.random() < p){
           this.pointsArray[i][j].s = disp
-          this.points.geometry.colors[i*yLen+j].set("hsl(" + 360*this.pointsArray[i][j].s
+          this.points.geometry.colors[i*vertSize+j].set("hsl(" + 360*this.pointsArray[i][j].s
                                 + ",100%,50%)")
         }
       }
@@ -112,22 +112,22 @@ class Environment {
     this.points.geometry.colorsNeedUpdate = true
   }
 
-  updateXYPeriodic (xLen,yLen,temp) {
+  updateXYPeriodic () {
     //uses Periodic boundary conditions and Glauber dynamics
-    for(i = 0; i<xLen; i++){
-      for(j = 0; j<yLen; j++){
+    for(i = 0; i<horizSize; i++){
+      for(j = 0; j<vertSize; j++){
         disp = Math.random()
-        w = this.pointsArray[i][(j+1)%yLen].s
-        a = this.pointsArray[(i-1+xLen)%xLen][j].s
+        w = this.pointsArray[i][(j+1)%vertSize].s
+        a = this.pointsArray[(i-1+horizSize)%horizSize][j].s
         s = this.pointsArray[i][j].s
-        d = this.pointsArray[(i+1)%xLen][j].s
-        x = this.pointsArray[i][(j-1+yLen)%yLen].s
+        d = this.pointsArray[(i+1)%horizSize][j].s
+        x = this.pointsArray[i][(j-1+vertSize)%vertSize].s
         e0 = this.energy(w,a,s,d,x)
         e1 = this.energy(w,a,disp,d,x)
         p = 1/(1+Math.exp(-(e1-e0)/temp))
         if(Math.random() < p){
           this.pointsArray[i][j].s = disp
-          this.points.geometry.colors[i*yLen+j].set("hsl(" + 360*this.pointsArray[i][j].s
+          this.points.geometry.colors[i*vertSize+j].set("hsl(" + 360*this.pointsArray[i][j].s
                                 + ",100%,50%)")
         }
       }
@@ -135,17 +135,17 @@ class Environment {
     this.points.geometry.colorsNeedUpdate = true
   }
 
-  getAverageMagnetization(xLen,yLen,size){
+  getAverageMagnetization(horizSize,vertSize,size){
     var s = 0
-    var averageMagnetization = new Array(Math.floor(xLen/size))
-    for(i = 0; i<Math.floor(xLen/size); i++){
-      averageMagnetization[i] = new Array(Math.floor(yLen/size))
-      for(j = 0; j<Math.floor(yLen/size); j++){
+    var averageMagnetization = new Array(Math.floor(horizSize/size))
+    for(i = 0; i<Math.floor(horizSize/size); i++){
+      averageMagnetization[i] = new Array(Math.floor(vertSize/size))
+      for(j = 0; j<Math.floor(vertSize/size); j++){
         averageMagnetization[i][j] = new THREE.Vector2(0,0)
       }
     }
-    for(i = 0; i<xLen; i++){
-      for(j = 0; j<yLen; j++){
+    for(i = 0; i<horizSize; i++){
+      for(j = 0; j<vertSize; j++){
         s = this.pointsArray[i][j].s
         averageMagnetization[Math.floor(i/size)][Math.floor(j/size)].add(
           new THREE.Vector2(Math.sin(s),Math.cos(s)))
