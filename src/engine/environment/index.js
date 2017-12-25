@@ -11,6 +11,7 @@ const horizSize = 200
 const vertSize = 100
 var temp = 0.3
 var poking = false
+var feedback = 0
 
 class Environment {
 
@@ -52,7 +53,7 @@ class Environment {
 
   render () {
     // this.updateXYPeriodic(horizSize,vertSize,temp)
-    this.updateXYDirichlet(horizSize,vertSize,temp)
+    this.updateXYDirichlet(horizSize,vertSize)
     this.resizeCanvasToDisplaySize(true)
     this.renderer.render(this.scene, this.camera)
   }
@@ -87,8 +88,9 @@ class Environment {
     this.scene.add(this.points)
   }
 
-  updateXYDirichlet (xLen,yLen,temp) {
+  updateXYDirichlet (xLen,yLen) {
     //uses Dirichlet boundary conditions and Glauber dynamics
+    var averageMagnetization = this.getAverageMagnetization(xLen,yLen,5)
     for(i = 1; i<xLen-1; i++){
       for(j = 1; j<yLen-1; j++){
         disp = Math.random()
@@ -131,6 +133,26 @@ class Environment {
       }
     }
     this.points.geometry.colorsNeedUpdate = true
+  }
+
+  getAverageMagnetization(xLen,yLen,size){
+    var s = 0
+    var averageMagnetization = new Array(Math.floor(xLen/size))
+    for(i = 0; i<Math.floor(xLen/size); i++){
+      averageMagnetization[i] = new Array(Math.floor(yLen/size))
+      for(j = 0; j<Math.floor(yLen/size); j++){
+        averageMagnetization[i][j] = new THREE.Vector2(0,0)
+      }
+    }
+    for(i = 0; i<xLen; i++){
+      for(j = 0; j<yLen; j++){
+        s = this.pointsArray[i][j].s
+        averageMagnetization[Math.floor(i/size)][Math.floor(j/size)].add(
+          new THREE.Vector2(Math.sin(s),Math.cos(s)))
+      }
+    }
+    averageMagnetization.map(a => a.map(v => v.multiplyScalar(1/size)))
+    return averageMagnetization
   }
 
   energy(w,a,s,d,x) {
