@@ -12,6 +12,7 @@ const vertSize = 100
 var temp = 0.3
 var poking = false
 var feedback = 0
+var size = 5
 
 class Environment {
 
@@ -90,7 +91,8 @@ class Environment {
 
   updateXYDirichlet () {
     //uses Dirichlet boundary conditions and Glauber dynamics
-    var averageMagnetization = this.getAverageMagnetization(horizSize,vertSize,5)
+    var B
+    var averageMagnetization = this.getAverageMagnetization()
     for(i = 1; i<horizSize-1; i++){
       for(j = 1; j<vertSize-1; j++){
         disp = Math.random()
@@ -99,8 +101,9 @@ class Environment {
         s = this.pointsArray[i][j].s
         d = this.pointsArray[i+1][j].s
         x = this.pointsArray[i][j-1].s
-        e0 = this.energy(w,a,s,d,x)
-        e1 = this.energy(w,a,disp,d,x)
+        B = averageMagnetization[Math.floor(i/size)][Math.floor(j/size)]
+        e0 = this.energy(w,a,s,d,x,B)
+        e1 = this.energy(w,a,disp,d,x,B)
         p = 1/(1+Math.exp(-(e1-e0)/temp))
         if(Math.random() < p){
           this.pointsArray[i][j].s = disp
@@ -135,7 +138,7 @@ class Environment {
     this.points.geometry.colorsNeedUpdate = true
   }
 
-  getAverageMagnetization(horizSize,vertSize,size){
+  getAverageMagnetization(){
     var s = 0
     var averageMagnetization = new Array(Math.floor(horizSize/size))
     for(i = 0; i<Math.floor(horizSize/size); i++){
@@ -148,15 +151,17 @@ class Environment {
       for(j = 0; j<vertSize; j++){
         s = this.pointsArray[i][j].s
         averageMagnetization[Math.floor(i/size)][Math.floor(j/size)].add(
-          new THREE.Vector2(Math.sin(s),Math.cos(s)))
+          new THREE.Vector2(Math.cos(2*Math.PI*s),Math.sin(2*Math.PI*s)))
       }
     }
     averageMagnetization.map(a => a.map(v => v.multiplyScalar(1/size)))
     return averageMagnetization
   }
 
-  energy(w,a,s,d,x) {
-    return Math.cos(2*Math.PI*(w-s)) + Math.cos(2*Math.PI*(a-s)) + Math.cos(2*Math.PI*(d-s)) + Math.cos(2*Math.PI*(x-s))
+  energy(w,a,s,d,x,B) {
+    var e = Math.cos(2*Math.PI*(w-s)) + Math.cos(2*Math.PI*(a-s)) + Math.cos(2*Math.PI*(d-s)) + Math.cos(2*Math.PI*(x-s))
+    e-= feedback*(Math.cos(2*Math.PI*s)*B.x + Math.sin(2*Math.PI*s)*B.y)
+    return e
   }
 
   keypress(e) {
@@ -166,6 +171,10 @@ class Environment {
     } else if (e.key == "c") {
       temp-=0.05
       this.text2.innerHTML = Math.floor(20*temp)
+    } else if (e.key == "m") {
+      feedback += 0.05
+    } else if (e.key == "l") {
+      feedback -= 0.05
     }
   }
 
