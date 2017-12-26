@@ -49,7 +49,9 @@ class Physics {
       for(i = 1; i<this.horizSize-1; i++){
         for(j = 1; j<this.vertSize-1; j++){
           disp = Math.random()
-          var appliedField = localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)].multiplyScalar(feedback)
+          var appliedField = new THREE.Vector2()
+          appliedField.copy(localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)])
+          appliedField.multiplyScalar(feedback)
           e0 = this.energy(this.pointsArray[i][j].s, this.pointsArray[i][j].neighbors,appliedField)
           e1 = this.energy(disp,this.pointsArray[i][j].neighbors,appliedField)
           p = 1/(1+Math.exp(-(e1-e0)/temp))

@@ -9,8 +9,7 @@ var e0, e1
 var p
 var temp = 0.3
 var poking = false
-var feedback = 0
-var size = 5
+var feedback = 0.5
 var horizSize = 200
 var vertSize = 100
 
