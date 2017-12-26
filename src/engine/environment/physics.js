@@ -98,7 +98,7 @@ class Physics {
     energy(s,neighbors,appliedField) {
       var e = 0
       neighbors.forEach((n) => {e+=Math.cos(2*Math.PI*(n.s-s))})
-      e-= (Math.cos(2*Math.PI*s)*appliedField.x + Math.sin(2*Math.PI*s)*appliedField.y)
+      e+= (Math.cos(2*Math.PI*s)*appliedField.x + Math.sin(2*Math.PI*s)*appliedField.y)
       return e
     }
 
