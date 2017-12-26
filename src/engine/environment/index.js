@@ -2,15 +2,16 @@ const THREE = require('three')
 const $ = require('jquery')
 const OrbitControls = require('three-orbit-controls')(THREE)
 const WindowResize = require('three-window-resize')
+const Physics = require('./physics.js')
 var i, j
 var disp
 var e0, e1
-var w,a,s,d,x
 var p
-const horizSize = 200
-const vertSize = 100
 var temp = 0.3
 var poking = false
+var feedback = 0
+var horizSize = 200
+var vertSize = 100
 
 class Environment {
 
@@ -46,95 +47,33 @@ class Environment {
     this.text2.style.left = 20 + 'px';
     document.body.appendChild(this.text2);
 
-    this.createXY(horizSize,vertSize)
+    this.physics = new Physics(horizSize,vertSize,5)
+    this.makePhysicsMesh(this.physics)
+
     this.resizeCanvasToDisplaySize(true)
   }
 
   render () {
-    // this.updateXYPeriodic(horizSize,vertSize,temp)
-    this.updateXYDirichlet(horizSize,vertSize,temp)
+    // this.updateXYPeriodic(horizSize,vertSize)
+    this.physics.updateXYDirichlet(temp,feedback,this.physicsMesh.geometry)
+    this.physicsMesh.geometry.colorsNeedUpdate = true
     this.resizeCanvasToDisplaySize(true)
     this.renderer.render(this.scene, this.camera)
   }
 
   // 'private'
 
-  createXY (xLen,yLen) {
+  makePhysicsMesh() {
     var geometry = new THREE.Geometry()
-    this.pointsArray = new Array(xLen)
-    for(i = 0; i<xLen; i++){
-      this.pointsArray[i] = new Array(yLen)
-      for(j = 0; j<yLen; j++){
-        this.pointsArray[i][j] = new THREE.Vector3(i*0.5-xLen*0.25,j*0.5-yLen*0.25,0)
-        if(i == 0 || j == 0 || i == xLen-1 || j == yLen-1){
-            //useful to set boundary values separately,
-            //especially when using Dirichlet boundary conditions
-            // this.pointsArray[i][j].s = Math.random()
-            // this.pointsArray[i][j].s = i/horizSize
-            this.pointsArray[i][j].s = i/horizSize
-        } else {
-          this.pointsArray[i][j].s = Math.random()
-          // this.pointsArray[i][j].s = i/horizSize
-        }
-        geometry.vertices.push(this.pointsArray[i][j])
-        geometry.colors.push(new THREE.Color("hsl(" + 360*this.pointsArray[i][j].s
-                              + ",100%,50%)"))
-      }
-    }
+    this.physics.pointsArray.forEach((a) => a.forEach((p) => {
+      geometry.vertices.push(p)
+      geometry.colors.push(new THREE.Color("hsl(" + 360*p.s
+                            + ",100%,50%)"))
+    }))
     const pointsMaterial = new THREE.PointsMaterial({vertexColors:THREE.VertexColors})
-    this.points = new THREE.Points(geometry,pointsMaterial)
-    this.points.geometry.colorsNeedUpdate = true
-    this.scene.add(this.points)
-  }
-
-  updateXYDirichlet (xLen,yLen,temp) {
-    //uses Dirichlet boundary conditions and Glauber dynamics
-    for(i = 1; i<xLen-1; i++){
-      for(j = 1; j<yLen-1; j++){
-        disp = Math.random()
-        w = this.pointsArray[i][j+1].s
-        a = this.pointsArray[i-1][j].s
-        s = this.pointsArray[i][j].s
-        d = this.pointsArray[i+1][j].s
-        x = this.pointsArray[i][j-1].s
-        e0 = this.energy(w,a,s,d,x)
-        e1 = this.energy(w,a,disp,d,x)
-        p = 1/(1+Math.exp(-(e1-e0)/temp))
-        if(Math.random() < p){
-          this.pointsArray[i][j].s = disp
-          this.points.geometry.colors[i*yLen+j].set("hsl(" + 360*this.pointsArray[i][j].s
-                                + ",100%,50%)")
-        }
-      }
-    }
-    this.points.geometry.colorsNeedUpdate = true
-  }
-
-  updateXYPeriodic (xLen,yLen,temp) {
-    //uses Periodic boundary conditions and Glauber dynamics
-    for(i = 0; i<xLen; i++){
-      for(j = 0; j<yLen; j++){
-        disp = Math.random()
-        w = this.pointsArray[i][(j+1)%yLen].s
-        a = this.pointsArray[(i-1+xLen)%xLen][j].s
-        s = this.pointsArray[i][j].s
-        d = this.pointsArray[(i+1)%xLen][j].s
-        x = this.pointsArray[i][(j-1+yLen)%yLen].s
-        e0 = this.energy(w,a,s,d,x)
-        e1 = this.energy(w,a,disp,d,x)
-        p = 1/(1+Math.exp(-(e1-e0)/temp))
-        if(Math.random() < p){
-          this.pointsArray[i][j].s = disp
-          this.points.geometry.colors[i*yLen+j].set("hsl(" + 360*this.pointsArray[i][j].s
-                                + ",100%,50%)")
-        }
-      }
-    }
-    this.points.geometry.colorsNeedUpdate = true
-  }
-
-  energy(w,a,s,d,x) {
-    return Math.cos(2*Math.PI*(w-s)) + Math.cos(2*Math.PI*(a-s)) + Math.cos(2*Math.PI*(d-s)) + Math.cos(2*Math.PI*(x-s))
+    this.physicsMesh = new THREE.Points(geometry,pointsMaterial)
+    this.physicsMesh.geometry.colorsNeedUpdate = true
+    this.scene.add(this.physicsMesh)
   }
 
   keypress(e) {
@@ -144,6 +83,14 @@ class Environment {
     } else if (e.key == "c") {
       temp-=0.05
       this.text2.innerHTML = Math.floor(20*temp)
+    } else if (e.key == "m") {
+      feedback += 0.05
+      console.log(feedback)
+    } else if (e.key == "l") {
+      feedback -= 0.05
+      console.log(feedback)
+    } else if (e.key == "a") {
+      this.physics.getTotalMagnetization()
     }
   }
 
@@ -174,7 +121,7 @@ class Environment {
         j = Math.floor(position.y*2) + vertSize/2
         for(var k = -8; k<9;k++){
           for(var l = -8; l<9;l++){
-            this.pointsArray[i+k][j+l].s = Math.random()
+            this.physics.pointsArray[i+k][j+l].s = Math.random()
           }
         }
       }
