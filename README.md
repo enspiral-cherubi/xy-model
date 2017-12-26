@@ -31,7 +31,7 @@ Then the simulator chooses another random variable 0<X<1 and if X<p, we replace 
 ### install
 
 ```
-git clone https://github.com/topological-ragnar/xy
+git clone https://github.com/enspiral-cherubi/xy-model
 cd xy
 npm install
 ```
