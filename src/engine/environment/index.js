@@ -2,12 +2,11 @@ const THREE = require('three')
 const $ = require('jquery')
 const OrbitControls = require('three-orbit-controls')(THREE)
 const WindowResize = require('three-window-resize')
+const Physics = require('./physics.js')
 var i, j
 var disp
 var e0, e1
 var p
-const horizSize = 200
-const vertSize = 100
 var temp = 0.3
 var poking = false
 var feedback = 0
@@ -47,136 +46,33 @@ class Environment {
     this.text2.style.left = 20 + 'px';
     document.body.appendChild(this.text2);
 
-    this.createXYperiodic()
+    this.physics = new Physics(200,100,5)
+    this.makePhysicsMesh(this.physics)
+
     this.resizeCanvasToDisplaySize(true)
   }
 
   render () {
     // this.updateXYPeriodic(horizSize,vertSize)
-    this.updateXYDirichlet(horizSize,vertSize)
+    this.physics.updateXYDirichlet(temp,feedback,this.physicsMesh.geometry)
+    this.physicsMesh.geometry.colorsNeedUpdate = true
     this.resizeCanvasToDisplaySize(true)
     this.renderer.render(this.scene, this.camera)
   }
 
   // 'private'
 
-  createXYperiodic () {
+  makePhysicsMesh() {
     var geometry = new THREE.Geometry()
-    this.pointsArray = new Array(horizSize)
-    for(i = 0; i<horizSize; i++){
-      this.pointsArray[i] = new Array(vertSize)
-      for(j = 0; j<vertSize; j++){
-        this.pointsArray[i][j] = new THREE.Vector3(i*0.5-horizSize*0.25,j*0.5-vertSize*0.25,0)
-        if(i == 0 || j == 0 || i == horizSize-1 || j == vertSize-1){
-            //useful to set boundary values separately,
-            //especially when using Dirichlet boundary conditions
-            // this.pointsArray[i][j].s = Math.random()
-            // this.pointsArray[i][j].s = i/horizSize
-            this.pointsArray[i][j].s = i/horizSize
-        } else {
-          this.pointsArray[i][j].s = Math.random()
-          // this.pointsArray[i][j].s = i/horizSize
-        }
-        geometry.vertices.push(this.pointsArray[i][j])
-        geometry.colors.push(new THREE.Color("hsl(" + 360*this.pointsArray[i][j].s
-                              + ",100%,50%)"))
-      }
-    }
-    //add neighbors
-    for(i = 0; i<horizSize; i++){
-      for(j = 0; j<vertSize; j++){
-        this.pointsArray[i][j].neighbors = []
-        this.pointsArray[i][j].neighbors.push(this.pointsArray[i][(j+1)%vertSize])
-        this.pointsArray[i][j].neighbors.push(this.pointsArray[(i-1+horizSize)%horizSize][j])
-        this.pointsArray[i][j].neighbors.push(this.pointsArray[(i+1)%horizSize][j])
-        this.pointsArray[i][j].neighbors.push(this.pointsArray[i][(j-1+vertSize)%vertSize])
-      }
-    }
+    this.physics.pointsArray.forEach((a) => a.forEach((p) => {
+      geometry.vertices.push(p)
+      geometry.colors.push(new THREE.Color("hsl(" + 360*p.s
+                            + ",100%,50%)"))
+    }))
     const pointsMaterial = new THREE.PointsMaterial({vertexColors:THREE.VertexColors})
-    this.points = new THREE.Points(geometry,pointsMaterial)
-    this.points.geometry.colorsNeedUpdate = true
-    this.scene.add(this.points)
-  }
-
-  updateXYDirichlet() {
-    //updates the XY model using Glauber dynamics and Dirichlet boundary conditions
-    var localMagnetizations = this.getLocalMagnetizations()
-    for(i = 1; i<horizSize-1; i++){
-      for(j = 1; j<vertSize-1; j++){
-        disp = Math.random()
-        var appliedField = localMagnetizations[Math.floor(i/size)][Math.floor(j/size)]
-        e0 = this.energy(this.pointsArray[i][j].s, this.pointsArray[i][j].neighbors,appliedField)
-        e1 = this.energy(disp,this.pointsArray[i][j].neighbors,appliedField)
-        p = 1/(1+Math.exp(-(e1-e0)/temp))
-        if(Math.random() < p){
-          this.pointsArray[i][j].s = disp
-          this.points.geometry.colors[i*vertSize+j].set("hsl(" + 360*this.pointsArray[i][j].s
-                                + ",100%,50%)")
-        }
-      }
-    }
-    this.points.geometry.colorsNeedUpdate = true
-  }
-
-  updateXYPeriodic () {
-    //uses Periodic boundary conditions and Glauber dynamics
-    for(i = 0; i<horizSize; i++){
-      for(j = 0; j<vertSize; j++){
-        disp = Math.random()
-        w = this.pointsArray[i][(j+1)%vertSize].s
-        a = this.pointsArray[(i-1+horizSize)%horizSize][j].s
-        s = this.pointsArray[i][j].s
-        d = this.pointsArray[(i+1)%horizSize][j].s
-        x = this.pointsArray[i][(j-1+vertSize)%vertSize].s
-        e0 = this.energy(w,a,s,d,x)
-        e1 = this.energy(w,a,disp,d,x)
-        p = 1/(1+Math.exp(-(e1-e0)/temp))
-        if(Math.random() < p){
-          this.pointsArray[i][j].s = disp
-          this.points.geometry.colors[i*vertSize+j].set("hsl(" + 360*this.pointsArray[i][j].s
-                                + ",100%,50%)")
-        }
-      }
-    }
-    this.points.geometry.colorsNeedUpdate = true
-  }
-
-  getLocalMagnetizations(){
-    var s = 0
-    var localMagnetizations = new Array(Math.floor(horizSize/size))
-    for(i = 0; i<Math.floor(horizSize/size); i++){
-      localMagnetizations[i] = new Array(Math.floor(vertSize/size))
-      for(j = 0; j<Math.floor(vertSize/size); j++){
-        localMagnetizations[i][j] = new THREE.Vector2(0,0)
-      }
-    }
-    for(i = 0; i<horizSize; i++){
-      for(j = 0; j<vertSize; j++){
-        s = this.pointsArray[i][j].s
-        localMagnetizations[Math.floor(i/size)][Math.floor(j/size)].add(
-          new THREE.Vector2(Math.cos(2*Math.PI*s),Math.sin(2*Math.PI*s)))
-      }
-    }
-    localMagnetizations.map(a => a.map(v => v.multiplyScalar(1/size)))
-    return localMagnetizations
-  }
-
-  makePyramids(localMagnetization){
-    var k
-    var H = new Array(horizSize)
-    for(i = 0; i<horizSize; i++){
-      H[i] = new Array(vertSize)
-      for(j = 0; j<vertSize; j++){
-
-      }
-    }
-  }
-
-  energy(s,neighbors,appliedField) {
-    var e = 0
-    neighbors.forEach((n) => {e+=Math.cos(2*Math.PI*(n.s-s))})
-    e-= feedback*(Math.cos(2*Math.PI*s)*appliedField.x + Math.sin(2*Math.PI*s)*appliedField.y)
-    return e
+    this.physicsMesh = new THREE.Points(geometry,pointsMaterial)
+    this.physicsMesh.geometry.colorsNeedUpdate = true
+    this.scene.add(this.physicsMesh)
   }
 
   keypress(e) {
