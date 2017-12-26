@@ -7,7 +7,7 @@ var p
 
 class Physics {
 
-    constructor (horizSize,vertSize,squidSize) {
+    constructor (horizSize,vertSize,squidSize,initialSpin) {
       this.horizSize = horizSize
       this.vertSize = vertSize
       this.squidSize = squidSize
@@ -24,8 +24,7 @@ class Physics {
               // this.pointsArray[i][j].s = i/horizSize
               this.pointsArray[i][j].s = i/horizSize
           } else {
-            this.pointsArray[i][j].s = Math.random()
-            // this.pointsArray[i][j].s = i/horizSize
+            this.pointsArray[i][j].s = initialSpin || Math.random()
           }
         }
       }
@@ -41,6 +40,7 @@ class Physics {
           this.pointsArray[i][j].neighbors.push(this.pointsArray[i][(j-1+vertSize)%vertSize])
         }
       }
+      this.getTotalMagnetization()
     }
 
     updateXYDirichlet(temp,feedback,geometry) {
@@ -52,6 +52,7 @@ class Physics {
           var appliedField = new THREE.Vector2()
           appliedField.copy(localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)])
           appliedField.multiplyScalar(feedback)
+          appliedField.multiplyScalar(this.pyramid(i,j))
           e0 = this.energy(this.pointsArray[i][j].s, this.pointsArray[i][j].neighbors,appliedField)
           e1 = this.energy(disp,this.pointsArray[i][j].neighbors,appliedField)
           p = 1/(1+Math.exp(-(e1-e0)/temp))
@@ -91,15 +92,10 @@ class Physics {
       console.log(totalMagnetization)
     }
 
-    makePyramids(localMagnetization){
-      var k
-      var H = new Array(this.horizSize)
-      for(i = 0; i<this.horizSize; i++){
-        H[i] = new Array(this.vertSize)
-        for(j = 0; j<this.vertSize; j++){
-
-        }
-      }
+    pyramid(x,y){
+      var bigx = Math.floor(x/this.squidSize)+1/2
+      var bigy = Math.floor(y/this.squidSize)+1/2
+      return this.squidSize - Math.abs(x - bigx*this.squidSize)-Math.abs(y - bigy*this.squidSize)
     }
 
     energy(s,neighbors,appliedField) {
