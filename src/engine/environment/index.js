@@ -89,6 +89,8 @@ class Environment {
     } else if (e.key == "l") {
       feedback -= 0.05
       console.log(feedback)
+    } else if (e.key == "a") {
+      this.physics.getTotalMagnetization()
     }
   }
 

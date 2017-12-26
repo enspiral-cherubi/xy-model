@@ -84,6 +84,13 @@ class Physics {
       return localMagnetizations
     }
 
+    getTotalMagnetization(){
+      var totalMagnetization = new THREE.Vector2(0,0)
+      var localMagnetizations = this.getLocalMagnetizations()
+      localMagnetizations.forEach((a) => {a.forEach((v) => {totalMagnetization.add(v)})})
+      console.log(totalMagnetization)
+    }
+
     makePyramids(localMagnetization){
       var k
       var H = new Array(this.horizSize)
