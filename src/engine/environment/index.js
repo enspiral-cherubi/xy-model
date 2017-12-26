@@ -5,7 +5,6 @@ const WindowResize = require('three-window-resize')
 var i, j
 var disp
 var e0, e1
-var w,a,s,d,x
 var p
 const horizSize = 200
 const vertSize = 100
@@ -48,7 +47,7 @@ class Environment {
     this.text2.style.left = 20 + 'px';
     document.body.appendChild(this.text2);
 
-    this.createXY()
+    this.createXYperiodic()
     this.resizeCanvasToDisplaySize(true)
   }
 
@@ -61,7 +60,7 @@ class Environment {
 
   // 'private'
 
-  createXY () {
+  createXYperiodic () {
     var geometry = new THREE.Geometry()
     this.pointsArray = new Array(horizSize)
     for(i = 0; i<horizSize; i++){
@@ -83,27 +82,31 @@ class Environment {
                               + ",100%,50%)"))
       }
     }
+    //add neighbors
+    for(i = 0; i<horizSize; i++){
+      for(j = 0; j<vertSize; j++){
+        this.pointsArray[i][j].neighbors = []
+        this.pointsArray[i][j].neighbors.push(this.pointsArray[i][(j+1)%vertSize])
+        this.pointsArray[i][j].neighbors.push(this.pointsArray[(i-1+horizSize)%horizSize][j])
+        this.pointsArray[i][j].neighbors.push(this.pointsArray[(i+1)%horizSize][j])
+        this.pointsArray[i][j].neighbors.push(this.pointsArray[i][(j-1+vertSize)%vertSize])
+      }
+    }
     const pointsMaterial = new THREE.PointsMaterial({vertexColors:THREE.VertexColors})
     this.points = new THREE.Points(geometry,pointsMaterial)
     this.points.geometry.colorsNeedUpdate = true
     this.scene.add(this.points)
   }
 
-  updateXYDirichlet () {
-    //uses Dirichlet boundary conditions and Glauber dynamics
-    var B
-    var averageMagnetization = this.getAverageMagnetization()
+  updateXYDirichlet() {
+    //updates the XY model using Glauber dynamics and Dirichlet boundary conditions
+    var localMagnetizations = this.getLocalMagnetizations()
     for(i = 1; i<horizSize-1; i++){
       for(j = 1; j<vertSize-1; j++){
         disp = Math.random()
-        w = this.pointsArray[i][j+1].s
-        a = this.pointsArray[i-1][j].s
-        s = this.pointsArray[i][j].s
-        d = this.pointsArray[i+1][j].s
-        x = this.pointsArray[i][j-1].s
-        B = averageMagnetization[Math.floor(i/size)][Math.floor(j/size)]
-        e0 = this.energy(w,a,s,d,x,B)
-        e1 = this.energy(w,a,disp,d,x,B)
+        var appliedField = localMagnetizations[Math.floor(i/size)][Math.floor(j/size)]
+        e0 = this.energy(this.pointsArray[i][j].s, this.pointsArray[i][j].neighbors,appliedField)
+        e1 = this.energy(disp,this.pointsArray[i][j].neighbors,appliedField)
         p = 1/(1+Math.exp(-(e1-e0)/temp))
         if(Math.random() < p){
           this.pointsArray[i][j].s = disp
@@ -138,29 +141,41 @@ class Environment {
     this.points.geometry.colorsNeedUpdate = true
   }
 
-  getAverageMagnetization(){
+  getLocalMagnetizations(){
     var s = 0
-    var averageMagnetization = new Array(Math.floor(horizSize/size))
+    var localMagnetizations = new Array(Math.floor(horizSize/size))
     for(i = 0; i<Math.floor(horizSize/size); i++){
-      averageMagnetization[i] = new Array(Math.floor(vertSize/size))
+      localMagnetizations[i] = new Array(Math.floor(vertSize/size))
       for(j = 0; j<Math.floor(vertSize/size); j++){
-        averageMagnetization[i][j] = new THREE.Vector2(0,0)
+        localMagnetizations[i][j] = new THREE.Vector2(0,0)
       }
     }
     for(i = 0; i<horizSize; i++){
       for(j = 0; j<vertSize; j++){
         s = this.pointsArray[i][j].s
-        averageMagnetization[Math.floor(i/size)][Math.floor(j/size)].add(
+        localMagnetizations[Math.floor(i/size)][Math.floor(j/size)].add(
           new THREE.Vector2(Math.cos(2*Math.PI*s),Math.sin(2*Math.PI*s)))
       }
     }
-    averageMagnetization.map(a => a.map(v => v.multiplyScalar(1/size)))
-    return averageMagnetization
+    localMagnetizations.map(a => a.map(v => v.multiplyScalar(1/size)))
+    return localMagnetizations
   }
 
-  energy(w,a,s,d,x,B) {
-    var e = Math.cos(2*Math.PI*(w-s)) + Math.cos(2*Math.PI*(a-s)) + Math.cos(2*Math.PI*(d-s)) + Math.cos(2*Math.PI*(x-s))
-    e-= feedback*(Math.cos(2*Math.PI*s)*B.x + Math.sin(2*Math.PI*s)*B.y)
+  makePyramids(localMagnetization){
+    var k
+    var H = new Array(horizSize)
+    for(i = 0; i<horizSize; i++){
+      H[i] = new Array(vertSize)
+      for(j = 0; j<vertSize; j++){
+
+      }
+    }
+  }
+
+  energy(s,neighbors,appliedField) {
+    var e = 0
+    neighbors.forEach((n) => {e+=Math.cos(2*Math.PI*(n.s-s))})
+    e-= feedback*(Math.cos(2*Math.PI*s)*appliedField.x + Math.sin(2*Math.PI*s)*appliedField.y)
     return e
   }
 
