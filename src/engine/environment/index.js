@@ -11,6 +11,8 @@ var temp = 0.3
 var poking = false
 var feedback = 0
 var size = 5
+var horizSize = 200
+var vertSize = 100
 
 class Environment {
 
@@ -46,7 +48,7 @@ class Environment {
     this.text2.style.left = 20 + 'px';
     document.body.appendChild(this.text2);
 
-    this.physics = new Physics(200,100,5)
+    this.physics = new Physics(horizSize,vertSize,5)
     this.makePhysicsMesh(this.physics)
 
     this.resizeCanvasToDisplaySize(true)
@@ -118,7 +120,7 @@ class Environment {
         j = Math.floor(position.y*2) + vertSize/2
         for(var k = -8; k<9;k++){
           for(var l = -8; l<9;l++){
-            this.pointsArray[i+k][j+l].s = Math.random()
+            this.physics.pointsArray[i+k][j+l].s = Math.random()
           }
         }
       }
