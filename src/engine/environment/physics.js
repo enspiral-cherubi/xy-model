@@ -58,8 +58,7 @@ class Physics {
           p = 1/(1+Math.exp(-(e1-e0)/temp))
           if(Math.random() < p){
             this.pointsArray[i][j].s = disp
-            geometry.colors[i*this.vertSize+j].set("hsl(" + 360*this.pointsArray[i][j].s
-                                  + ",100%,50%)")
+            geometry.colors[i*this.vertSize+j].set(this.spinToColor(this.pointsArray[i][j].s))
           }
         }
       }
@@ -95,7 +94,7 @@ class Physics {
     pyramid(x,y){
       var bigx = Math.floor(x/this.squidSize)+1/2
       var bigy = Math.floor(y/this.squidSize)+1/2
-      return this.squidSize - Math.abs(x - bigx*this.squidSize)-Math.abs(y - bigy*this.squidSize)
+      return 1 - (Math.abs(x - bigx*this.squidSize) + Math.abs(y - bigy*this.squidSize))/this.squidSize
     }
 
     energy(s,neighbors,appliedField) {
@@ -103,6 +102,38 @@ class Physics {
       neighbors.forEach((n) => {e+=Math.cos(2*Math.PI*(n.s-s))})
       e+= (Math.cos(2*Math.PI*s)*appliedField.x + Math.sin(2*Math.PI*s)*appliedField.y)
       return e
+    }
+
+    spinToColor(s){
+      var hue = 0
+      var saturation = 100
+      var lightness = 50
+
+      if(s < 0.3){//yellow band
+        hue = s*170+30
+        lightness = 50
+      } else if(s<0.6){//cyan band
+        hue = s*170+120
+      } else {//magenta band
+        hue = s*170 + 140
+        saturation = 100
+      }
+
+      // if(s < 0.3){//yellow band
+      //   hue = s*360 + 30
+      // } else if(s<0.6){//cyan band
+      //   hue = s*300 + 100
+      // } else {//magenta band
+      //   hue = s*300
+      // }
+
+       // saturation = Math.floor(Math.cos(Math.PI*s/2)*100) //fire mode
+
+      return "hsl(" + hue + "," + saturation +"%," + lightness + "%)"
+      // var r = s
+      // var g = 0
+      // var b = s
+      // return "rgb(" + Math.floor(r*255) +"," + Math.floor(g*255) + "," + Math.floor(b*255) +")"
     }
 
 
