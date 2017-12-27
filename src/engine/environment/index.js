@@ -91,6 +91,12 @@ class Environment {
       console.log(feedback)
     } else if (e.key == "a") {
       this.physics.getTotalMagnetization()
+    } else if (e.key == "v") {
+      if(this.physics.vaporColors){
+        this.physics.vaporColors = false
+      } else {
+        this.physics.vaporColors = true
+      }
     }
   }
 

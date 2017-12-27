@@ -11,6 +11,7 @@ class Physics {
       this.horizSize = horizSize
       this.vertSize = vertSize
       this.squidSize = squidSize
+      this.vaporColors = false
 
       this.pointsArray = new Array(horizSize)
       for(i = 0; i<horizSize; i++){
@@ -105,18 +106,20 @@ class Physics {
     }
 
     spinToColor(s){
-      var hue = 0
+      var hue = 360*s
       var saturation = 100
       var lightness = 50
 
-      if(s < 0.3){//yellow band
-        hue = s*170+30
-        lightness = 50
-      } else if(s<0.6){//cyan band
-        hue = s*170+120
-      } else {//magenta band
-        hue = s*170 + 140
-        saturation = 100
+      if(this.vaporColors){
+        if(s < 0.3){//yellow band
+          hue = s*170+30
+          lightness = 50
+        } else if(s<0.6){//cyan band
+          hue = s*170+120
+        } else {//magenta band
+          hue = s*170 + 140
+          saturation = 100
+        }
       }
 
       // if(s < 0.3){//yellow band
