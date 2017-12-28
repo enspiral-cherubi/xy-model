@@ -74,9 +74,6 @@ class Physics {
       for(i = 1; i<this.horizSize-1; i++){
         for(j = 1; j<this.vertSize-1; j++){
           disp = Math.random()
-          // appliedField.copy(localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)])
-          // appliedField.multiplyScalar(feedback)
-          // appliedField.multiplyScalar(this.pyramid(i,j))
           e0 = this.energy(this.pointsArray[i][j].s, this.pointsArray[i][j].neighbors,this.appliedFields[i][j])
           e1 = this.energy(disp,this.pointsArray[i][j].neighbors,this.appliedFields[i][j])
           p = 1/(1+Math.exp(-(e1-e0)/temp))
@@ -92,6 +89,61 @@ class Physics {
     getAppliedFields(feedback){
       //first compute local magnetizations
       this.getLocalMagnetizations()
+
+      //checker pattern
+      this.appliedFields.forEach((a) => {a.forEach((v) => v.set(0,0))})
+      for(i = this.squidSize; i<this.horizSize-this.squidSize; i++){
+        for(j = this.squidSize; j<this.vertSize-this.squidSize; j++){
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)+1],1)
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)-1][Math.floor(j/this.squidSize)],1)
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)+1][Math.floor(j/this.squidSize)],1)
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)-1],1)
+        }
+      }
+      for(i = 0; i<this.squidSize; i++){
+        for(j = this.squidSize; j<this.vertSize-this.squidSize; j++){
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)+1],1)
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)+1][Math.floor(j/this.squidSize)],1)
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)-1],1)
+        }
+      }
+      for(i = this.vertSize-this.squidSize; i<this.vertSize; i++){
+        for(j = this.squidSize; j<this.vertSize-this.squidSize; j++){
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)+1],1)
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)-1][Math.floor(j/this.squidSize)],1)
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)-1],1)
+        }
+      }
+      for(i = this.squidSize; i<this.horizSize-this.squidSize; i++){
+        for(j = 0; j<this.squidSize; j++){
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)+1],1)
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)-1][Math.floor(j/this.squidSize)],1)
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)+1][Math.floor(j/this.squidSize)],1)
+        }
+      }
+      for(i = this.squidSize; i<this.horizSize-this.squidSize; i++){
+        for(j = this.vertSize-this.squidSize; j<this.vertSize; j++){
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)-1],1)
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)-1][Math.floor(j/this.squidSize)],1)
+          appliedFields[i][j].addScaledVector(
+            this.localMagnetizations[Math.floor(i/this.squidSize)+1][Math.floor(j/this.squidSize)],1)
+        }
+      }
 
     }
 
