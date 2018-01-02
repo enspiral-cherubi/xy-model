@@ -24,7 +24,6 @@ class Physics {
               //useful to set boundary values separately,
               //especially when using Dirichlet boundary conditions
               // this.pointsArray[i][j].s = Math.random()
-              // this.pointsArray[i][j].s = i/horizSize
               this.pointsArray[i][j].s = i/horizSize
           } else {
             this.pointsArray[i][j].s = initialSpin || Math.random()
@@ -44,14 +43,33 @@ class Physics {
         }
       }
 
-      //prepare local magnetizations array
-      this.localMagnetizations = new Array(Math.floor(this.numSquidsHoriz))
+      this.squids = new Array(Math.floor(this.numSquidsHoriz))
       for(i = 0; i<Math.floor(this.numSquidsHoriz); i++){
-        this.localMagnetizations[i] = new Array(Math.floor(this.numSquidsVert))
+        this.squids[i] = new Array(Math.floor(this.numSquidsVert))
         for(j = 0; j<Math.floor(this.numSquidsVert); j++){
-          this.localMagnetizations[i][j] = new THREE.Vector2(0,0)
+          this.squids[i][j] = new Object()
+          this.squids[i][j].m = new THREE.Vector2(0,0)
+          this.squids[i][j].h = new THREE.Vector2(0,0)
         }
       }
+      for(i = 0; i<this.numSquidsHoriz; i++){
+        for(j = 0; j<this.numSquidsVert; j++){
+          this.squids[i][j].neighbors = []
+          this.squids[i][j].neighbors.push(this.squids[i][(j+1)%this.numSquidsVert])
+          this.squids[i][j].neighbors.push(this.squids[(i-1+this.numSquidsHoriz)%this.numSquidsHoriz][j])
+          this.squids[i][j].neighbors.push(this.squids[(i+1)%this.numSquidsHoriz][j])
+          this.squids[i][j].neighbors.push(this.squids[i][(j-1+this.numSquidsVert)%this.numSquidsVert])
+        }
+      }
+
+      // //prepare local magnetizations array
+      // this.localMagnetizations = new Array(Math.floor(this.numSquidsHoriz))
+      // for(i = 0; i<Math.floor(this.numSquidsHoriz); i++){
+      //   this.localMagnetizations[i] = new Array(Math.floor(this.numSquidsVert))
+      //   for(j = 0; j<Math.floor(this.numSquidsVert); j++){
+      //     this.localMagnetizations[i][j] = new THREE.Vector2(0,0)
+      //   }
+      // }
 
       //prepare applied fields array, with same coarseness
       this.appliedFields = new Array(this.numSquidsHoriz)
@@ -106,9 +124,13 @@ class Physics {
       for(i = 1; i<this.numSquidsHoriz-1; i++){
         for(j = 1; j<this.numSquidsVert-1; j++){
           // this.appliedFields[i][j].addScaledVector(this.localMagnetizations[i][j],1)
+          // this.appliedFields[i][j].set(
+          //   this.localMagnetizations[i][j].x*feedback,
+          //   this.localMagnetizations[i][j].y*feedback
+          // )
           this.appliedFields[i][j].set(
-            this.localMagnetizations[i][j].x*feedback,
-            this.localMagnetizations[i][j].y*feedback
+            this.squids[i][j].m.x*feedback,
+            this.squids[i][j].m.y*feedback
           )
         }
       }
@@ -174,23 +196,26 @@ class Physics {
     }
 
     getLocalMagnetizations(){
-      this.localMagnetizations.forEach((a) => a.forEach((v) => v.set(0,0)))
+      this.squids.forEach((a) => a.forEach((squid) => squid.m.set(0,0)))
       for(i = 0; i<this.horizSize; i++){
         for(j = 0; j<this.vertSize; j++){
           m.set(
             Math.cos(2*Math.PI*this.pointsArray[i][j].s),
             Math.sin(2*Math.PI*this.pointsArray[i][j].s)
           )
-          this.localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)].add(m)
+          this.squids[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)].m.add(m)
+          // this.localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)].add(m)
         }
       }
-      this.localMagnetizations.map(a => a.map(v => v.multiplyScalar(1/this.squidSize)))
+      this.squids.map(a => a.map(squid => squid.m.multiplyScalar(1/this.squidSize)))
+      // this.localMagnetizations.map(a => a.map(v => v.multiplyScalar(1/this.squidSize)))
     }
 
     getTotalMagnetization(){
       this.getLocalMagnetizations()
       this.totalMagnetization.set(0,0)
-      this.localMagnetizations.forEach((a) => {a.forEach((v) => {this.totalMagnetization.add(v)})})
+      // this.localMagnetizations.forEach((a) => {a.forEach((v) => {this.totalMagnetization.add(v)})})
+      this.squids.forEach((a) => {a.forEach((squid) => {this.totalMagnetization.add(squid.m)})})
       console.log(this.totalMagnetization)
     }
 
