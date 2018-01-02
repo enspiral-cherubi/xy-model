@@ -63,15 +63,6 @@ class Physics {
         }
       }
 
-      //prepare applied fields array, with same coarseness
-      this.appliedFields = new Array(this.numSquidsHoriz)
-      for(i = 0; i<Math.floor(this.numSquidsHoriz); i++){
-        this.appliedFields[i] = new Array(this.numSquidsVert)
-        for(j = 0; j<Math.floor(this.numSquidsVert); j++){
-          this.appliedFields[i][j] = new THREE.Vector2(0,0)
-        }
-      }
-
       //print total magnetization, for reference
       this.totalMagnetization = new THREE.Vector2(0,0)
       this.getTotalMagnetization()
@@ -91,11 +82,11 @@ class Physics {
           e0 = this.energy(
             this.pointsArray[i][j].s,
             this.pointsArray[i][j].neighbors,
-            this.appliedFields[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)])
+            this.squids[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)].h)
           e1 = this.energy(
             disp,
             this.pointsArray[i][j].neighbors,
-            this.appliedFields[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)])
+            this.squids[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)].h)
           p = 1/(1+Math.exp(-(e1-e0)/temp))
           if(Math.random() < p){
             this.pointsArray[i][j].s = disp
@@ -108,30 +99,24 @@ class Physics {
 
     getAppliedFields(feedback){
       //first compute local magnetizations
-      this.getLocalMagnetizations()
-
-      this.appliedFields.forEach((a) => {a.forEach((v) => v.set(0,0))})
+      this.squids.forEach((squidArray) => squidArray.forEach((squid) => {
+        squid.h.set(0,0)
+      }))
       //
       if(this.feedbackMode == 'direct'){
         //basic pattern
-        for(i = 1; i<this.numSquidsHoriz-1; i++){
-          for(j = 1; j<this.numSquidsVert-1; j++){
-            this.appliedFields[i][j].set(
-              this.squids[i][j].m.x*feedback,
-              this.squids[i][j].m.y*feedback
-            )
-          }
-        }
+        this.squids.forEach((squidArray) => squidArray.forEach((squid) => {
+          squid.h.set(squid.m.x*feedback,squid.m.y*feedback)
+        }))
       } else if (this.feedbackMode == 'checker') {
         //checker pattern
-        for(i = 1; i<this.numSquidsHoriz-1; i++){
-          for(j = 1; j<this.numSquidsVert-1; j++){
-            this.squids[i][j].neighbors.forEach((squid) => {
-              this.appliedFields[i][j].addScaledVector(squid.m,feedback)
-            })
-          }
-        }
+        this.squids.forEach((squidArray) => squidArray.forEach((squid) => {
+          squid.neighbors.forEach((neighborSquid) => {
+            squid.h.addScaledVector(neighborSquid.m,feedback)
+          })
+        }))
       }
+      this.getLocalMagnetizations()
     }
 
     getLocalMagnetizations(){
