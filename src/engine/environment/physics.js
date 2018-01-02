@@ -95,6 +95,35 @@ class Physics {
       }
     }
 
+    updateXYPeriodic(temp,feedback,geometry) {
+      //updates the XY model using Glauber dynamics and Dirichlet boundary conditions
+
+      //first compute applied fields, this will simulate some intrinsic time delay
+      this.getAppliedFields(feedback)
+
+      //iterate over all sites using Glauber algorithm
+      for(i = 0; i<this.horizSize; i++){
+        for(j = 0; j<this.vertSize; j++){
+          disp = Math.random()
+          e0 = this.energy(
+            this.pointsArray[i][j].s,
+            this.pointsArray[i][j].neighbors,
+            this.squids[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)].h)
+          e1 = this.energy(
+            disp,
+            this.pointsArray[i][j].neighbors,
+            this.squids[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)].h)
+          p = 1/(1+Math.exp(-(e1-e0)/temp))
+          if(Math.random() < p){
+            this.pointsArray[i][j].s = disp
+            geometry.colors[i*this.vertSize+j].set("hsl(" + 360*this.pointsArray[i][j].s
+                                  + ",100%,50%)")
+          }
+        }
+      }
+    }
+
+
     getAppliedFields(feedback){
       //first compute local magnetizations
       this.squids.forEach((squidArray) => squidArray.forEach((squid) => {

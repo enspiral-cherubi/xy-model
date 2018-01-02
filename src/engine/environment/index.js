@@ -54,8 +54,8 @@ class Environment {
   }
 
   render () {
-    // this.updateXYPeriodic(horizSize,vertSize)
-    this.physics.updateXYDirichlet(temp,feedback,this.physicsMesh.geometry)
+    // this.physics.updateXYDirichlet(temp,feedback,this.physicsMesh.geometry)
+    this.physics.updateXYPeriodic(temp,feedback,this.physicsMesh.geometry)
     this.physicsMesh.geometry.colorsNeedUpdate = true
     this.resizeCanvasToDisplaySize(true)
     this.renderer.render(this.scene, this.camera)
