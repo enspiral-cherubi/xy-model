@@ -91,6 +91,8 @@ class Environment {
       console.log(feedback)
     } else if (e.key == "a") {
       this.physics.getTotalMagnetization()
+    } else if (e.key == "g"){
+      this.physics.switchMode()
     }
   }
 

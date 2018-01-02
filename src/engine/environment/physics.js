@@ -14,6 +14,7 @@ class Physics {
       this.squidSize = squidSize
       this.numSquidsHoriz = Math.floor(horizSize/squidSize)
       this.numSquidsVert = Math.floor(vertSize/squidSize)
+      this.feedbackMode = 'direct'
 
       this.pointsArray = new Array(horizSize)
       for(i = 0; i<horizSize; i++){
@@ -61,15 +62,6 @@ class Physics {
           this.squids[i][j].neighbors.push(this.squids[i][(j-1+this.numSquidsVert)%this.numSquidsVert])
         }
       }
-
-      // //prepare local magnetizations array
-      // this.localMagnetizations = new Array(Math.floor(this.numSquidsHoriz))
-      // for(i = 0; i<Math.floor(this.numSquidsHoriz); i++){
-      //   this.localMagnetizations[i] = new Array(Math.floor(this.numSquidsVert))
-      //   for(j = 0; j<Math.floor(this.numSquidsVert); j++){
-      //     this.localMagnetizations[i][j] = new THREE.Vector2(0,0)
-      //   }
-      // }
 
       //prepare applied fields array, with same coarseness
       this.appliedFields = new Array(this.numSquidsHoriz)
@@ -119,80 +111,27 @@ class Physics {
       this.getLocalMagnetizations()
 
       this.appliedFields.forEach((a) => {a.forEach((v) => v.set(0,0))})
-
-      //basic pattern
-      for(i = 1; i<this.numSquidsHoriz-1; i++){
-        for(j = 1; j<this.numSquidsVert-1; j++){
-          // this.appliedFields[i][j].addScaledVector(this.localMagnetizations[i][j],1)
-          // this.appliedFields[i][j].set(
-          //   this.localMagnetizations[i][j].x*feedback,
-          //   this.localMagnetizations[i][j].y*feedback
-          // )
-          this.appliedFields[i][j].set(
-            this.squids[i][j].m.x*feedback,
-            this.squids[i][j].m.y*feedback
-          )
+      //
+      if(this.feedbackMode == 'direct'){
+        //basic pattern
+        for(i = 1; i<this.numSquidsHoriz-1; i++){
+          for(j = 1; j<this.numSquidsVert-1; j++){
+            this.appliedFields[i][j].set(
+              this.squids[i][j].m.x*feedback,
+              this.squids[i][j].m.y*feedback
+            )
+          }
+        }
+      } else if (this.feedbackMode == 'checker') {
+        //checker pattern
+        for(i = 1; i<this.numSquidsHoriz-1; i++){
+          for(j = 1; j<this.numSquidsVert-1; j++){
+            this.squids[i][j].neighbors.forEach((squid) => {
+              this.appliedFields[i][j].addScaledVector(squid.m,feedback)
+            })
+          }
         }
       }
-
-      // //checker pattern
-      // for(i = 1; i<this.numSquidsHoriz-1; i++){
-      //   for(j = 1; j<this.numSquidsVert-1; j++){
-      //     // this.appliedFields[i][j].addScaledVector(
-      //     //   this.localMagnetizations[i][j+1],
-      //     //   1
-      //     // )
-      //     // this.appliedFields[i][j].addScaledVector(
-      //     //   this.localMagnetizations[i-1][j],
-      //     //   1
-      //     // )
-      //     // this.appliedFields[i][j].addScaledVector(
-      //     //   this.localMagnetizations[i+1][j],
-      //     //   1
-      //     // )
-      //     // this.appliedFields[i][j].addScaledVector(
-      //     //   this.localMagnetizations[i][j-1],
-      //     //   1
-      //     // )
-      //     this.appliedFields[i][j].addScaledVector(
-      //       this.localMagnetizations[i][j],
-      //       1
-      //     )
-      //   }
-      // }
-      // for(j = 1; j<this.numSquidsVert-1; j++){
-      //   this.appliedFields[0][j].addScaledVector(
-      //     this.localMagnetizations[0][j+1],1)
-      //   this.appliedFields[0][j].addScaledVector(
-      //     this.localMagnetizations[1][j],1)
-      //   this.appliedFields[0][j].addScaledVector(
-      //     this.localMagnetizations[0][j-1],1)
-      // }
-      // for(j = 1; j<this.numSquidsVert-1; j++){
-      //   this.appliedFields[this.numSquidsHoriz-1][j].addScaledVector(
-      //     this.localMagnetizations[this.numSquidsHoriz-1][j+1],1)
-      //   this.appliedFields[this.numSquidsHoriz-1][j].addScaledVector(
-      //     this.localMagnetizations[i-1][j],1)
-      //   this.appliedFields[this.numSquidsHoriz-1][j].addScaledVector(
-      //     this.localMagnetizations[this.numSquidsHoriz-1][j-1],1)
-      // }
-      // for(i = 1; i<this.numSquidsHoriz-1; i++){
-      //   this.appliedFields[i][0].addScaledVector(
-      //     this.localMagnetizations[i][1],1)
-      //   this.appliedFields[i][0].addScaledVector(
-      //     this.localMagnetizations[i-1][0],1)
-      //   this.appliedFields[i][0].addScaledVector(
-      //     this.localMagnetizations[i+1][0],1)
-      // }
-      // for(i = 1; i<this.numSquidsHoriz-1; i++){
-      //   this.appliedFields[i][this.numSquidsVert-1].addScaledVector(
-      //     this.localMagnetizations[i][this.numSquidsVert-2],1)
-      //   this.appliedFields[i][this.numSquidsVert-1].addScaledVector(
-      //     this.localMagnetizations[i-1][this.numSquidsVert-1],1)
-      //   this.appliedFields[i][this.numSquidsVert-1].addScaledVector(
-      //     this.localMagnetizations[i+1][this.numSquidsVert-1],1)
-      // }
-      // this.appliedFields.forEach((a) => {a.forEach((v) => v.multiplyScalar(feedback))})
     }
 
     getLocalMagnetizations(){
@@ -204,17 +143,14 @@ class Physics {
             Math.sin(2*Math.PI*this.pointsArray[i][j].s)
           )
           this.squids[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)].m.add(m)
-          // this.localMagnetizations[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)].add(m)
         }
       }
       this.squids.map(a => a.map(squid => squid.m.multiplyScalar(1/this.squidSize)))
-      // this.localMagnetizations.map(a => a.map(v => v.multiplyScalar(1/this.squidSize)))
     }
 
     getTotalMagnetization(){
       this.getLocalMagnetizations()
       this.totalMagnetization.set(0,0)
-      // this.localMagnetizations.forEach((a) => {a.forEach((v) => {this.totalMagnetization.add(v)})})
       this.squids.forEach((a) => {a.forEach((squid) => {this.totalMagnetization.add(squid.m)})})
       console.log(this.totalMagnetization)
     }
@@ -232,6 +168,15 @@ class Physics {
       return e
     }
 
+    switchMode(){
+      if (this.feedbackMode == 'direct'){
+        this.feedbackMode = 'checker'
+        console.log(this.feedbackMode + 'feedback mode')
+      } else if (this.feedbackMode == 'checker') {
+        this.feedbackMode = 'direct'
+        console.log(this.feedbackMode + 'feedback mode')
+      }
+    }
 
 }
 
