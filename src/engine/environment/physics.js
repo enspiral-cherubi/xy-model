@@ -1,4 +1,5 @@
 const THREE = require('three')
+const Squid = require('./squid.js')
 var i
 var j
 var disp
@@ -31,9 +32,6 @@ class Physics {
           }
         }
       }
-      //add neighbors, keeping reference to the pointsArray objects so they update automatically,
-      //js only passes primitive types as values, all others, eg. THREE.Vector3, are passed
-      //by pointers
       for(i = 0; i<horizSize; i++){
         for(j = 0; j<vertSize; j++){
           this.pointsArray[i][j].neighbors = []
@@ -48,7 +46,7 @@ class Physics {
       for(i = 0; i<Math.floor(this.numSquidsHoriz); i++){
         this.squids[i] = new Array(Math.floor(this.numSquidsVert))
         for(j = 0; j<Math.floor(this.numSquidsVert); j++){
-          this.squids[i][j] = new Object()
+          this.squids[i][j] = new Squid()
           this.squids[i][j].m = new THREE.Vector2(0,0)
           this.squids[i][j].h = new THREE.Vector2(0,0)
         }
