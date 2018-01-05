@@ -47,7 +47,7 @@ class Environment {
     this.text2.style.left = 20 + 'px';
     document.body.appendChild(this.text2);
 
-    this.physics = new Physics(horizSize,vertSize,5)
+    this.physics = new Physics(horizSize,vertSize,5,false,0.5)
     this.makePhysicsMesh(this.physics)
 
     this.resizeCanvasToDisplaySize(true)
@@ -93,6 +93,14 @@ class Environment {
       this.physics.getTotalMagnetization()
     } else if (e.key == "g"){
       this.physics.switchMode()
+    } else if (e.key == "d"){
+      this.physics.density += 0.05
+      console.log(this.physics.density)
+      this.physics.toggleSquids()
+    } else if (e.key == "s"){
+      this.physics.density -= 0.05
+      console.log(this.physics.density)
+      this.physics.toggleSquids()
     }
   }
 

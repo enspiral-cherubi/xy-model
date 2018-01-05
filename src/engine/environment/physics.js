@@ -9,13 +9,14 @@ var m = new THREE.Vector2(0,0)
 
 class Physics {
 
-    constructor (horizSize,vertSize,squidSize,initialSpin) {
+    constructor (horizSize,vertSize,squidSize,initialSpin,density) {
       this.horizSize = horizSize
       this.vertSize = vertSize
       this.squidSize = squidSize
       this.numSquidsHoriz = Math.floor(horizSize/squidSize)
       this.numSquidsVert = Math.floor(vertSize/squidSize)
       this.feedbackMode = 'direct'
+      this.density = density || 1
 
       this.pointsArray = new Array(horizSize)
       for(i = 0; i<horizSize; i++){
@@ -61,10 +62,11 @@ class Physics {
         }
       }
 
+      this.toggleSquids()
+
       //print total magnetization, for reference
       this.totalMagnetization = new THREE.Vector2(0,0)
       this.getTotalMagnetization()
-      this.getAppliedFields(0.1)
     }
 
     updateXYDirichlet(temp,feedback,geometry) {
@@ -133,14 +135,18 @@ class Physics {
       if(this.feedbackMode == 'direct'){
         //basic pattern
         this.squids.forEach((squidArray) => squidArray.forEach((squid) => {
-          squid.h.set(squid.m.x*feedback,squid.m.y*feedback)
+          if (squid.on){
+            squid.h.set(squid.m.x*feedback,squid.m.y*feedback)
+          }
         }))
       } else if (this.feedbackMode == 'checker') {
         //checker pattern
         this.squids.forEach((squidArray) => squidArray.forEach((squid) => {
-          squid.neighbors.forEach((neighborSquid) => {
-            squid.h.addScaledVector(neighborSquid.m,feedback)
-          })
+          if (squid.on){
+            squid.neighbors.forEach((neighborSquid) => {
+              squid.h.addScaledVector(neighborSquid.m,feedback)
+            })
+          }
         }))
       }
       this.getLocalMagnetizations()
@@ -157,7 +163,7 @@ class Physics {
           this.squids[Math.floor(i/this.squidSize)][Math.floor(j/this.squidSize)].m.add(m)
         }
       }
-      this.squids.map(a => a.map(squid => squid.m.multiplyScalar(1/this.squidSize)))
+      this.squids.map(a => a.map(squid => squid.m.multiplyScalar(1/Math.pow(this.squidSize,2))))
     }
 
     getTotalMagnetization(){
@@ -188,6 +194,16 @@ class Physics {
         this.feedbackMode = 'direct'
         console.log(this.feedbackMode + 'feedback mode')
       }
+    }
+
+    toggleSquids(){
+      this.squids.forEach((squidArray) => squidArray.forEach((squid) => {
+        if (squid.threshold<this.density){
+          squid.on = true
+        } else {
+          squid.on = false
+        }
+      }))
     }
 
 }
