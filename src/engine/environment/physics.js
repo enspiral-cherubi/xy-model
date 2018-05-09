@@ -173,6 +173,22 @@ class Physics {
       console.log(this.totalMagnetization)
     }
 
+    computeWilsonLoop(){
+      var winding = 0
+      var infWinding = 0
+      for(i = 0; i < this.horizSize-1; i++){
+        infWinding = this.pointsArray[i+1][Math.floor(this.vertSize/2)].s-this.pointsArray[i][Math.floor(this.vertSize/2)].s
+        if(infWinding < -0.5){
+          winding += infWinding + 1
+        } else if (infWinding > 0.5){
+          winding += infWinding - 1
+        } else {
+          winding += infWinding
+        }
+      }
+      console.log('winding number: ' + Math.round(winding))
+    }
+
     pyramid(x,y){
       var bigx = Math.floor(x/this.squidSize)+1/2
       var bigy = Math.floor(y/this.squidSize)+1/2

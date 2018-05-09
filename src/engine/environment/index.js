@@ -79,28 +79,42 @@ class Environment {
   keypress(e) {
     if(e.key == "h"){
       temp+=0.05
+      console.log('temperature: ' + temp)
       this.text2.innerHTML = Math.floor(20*temp)
     } else if (e.key == "c") {
       temp-=0.05
+      console.log('temperature: ' + temp)
       this.text2.innerHTML = Math.floor(20*temp)
     } else if (e.key == "m") {
       feedback += 0.05
-      console.log(feedback)
+      console.log('feedback: ' + feedback)
     } else if (e.key == "l") {
       feedback -= 0.05
-      console.log(feedback)
+      console.log('feedback: ' + feedback)
     } else if (e.key == "a") {
       this.physics.getTotalMagnetization()
     } else if (e.key == "g"){
       this.physics.switchMode()
     } else if (e.key == "d"){
       this.physics.density += 0.05
-      console.log(this.physics.density)
+      console.log('squid density: ' + this.physics.density)
       this.physics.toggleSquids()
     } else if (e.key == "s"){
       this.physics.density -= 0.05
-      console.log(this.physics.density)
+      console.log('squid density: ' + this.physics.density)
       this.physics.toggleSquids()
+    } else if (e.key == "w") {
+      this.physics.computeWilsonLoop()
+    } else {
+      console.log('h: hotter')
+      console.log('c: colder')
+      console.log('m: more feedback')
+      console.log('l: less feedback')
+      console.log('a: get total magnetization')
+      console.log('g: toggle feedback mode')
+      console.log('d: increase squid density')
+      console.log('s: decrease squid density')
+      console.log('w: compute Wilson loop')
     }
   }
 
